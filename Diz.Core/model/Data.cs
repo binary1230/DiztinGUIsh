@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using Diz.Core.arch;
+using Diz.Core.model.parser;
 using Diz.Core.util;
 using DiztinGUIsh;
 using IX.Observable;
@@ -21,6 +22,8 @@ namespace Diz.Core.model
             labels = new ObservableDictionary<int, Label>();
             romBytes = new RomBytes();
             cpu65C816 = new Cpu65C816(this);
+            expressions = new DizExpressionCollection();
+            constants = new DizConstantCollection();
         }
 
         public void CreateRomBytesFromRom(IEnumerable<byte> actualRomBytes)

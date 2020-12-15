@@ -140,6 +140,8 @@
     <Compile Include="import\BsnesTraceLogImporter.Util.cs" />
     <Compile Include="model\Data.Constants.cs" />
     <Compile Include="model\Data.Properties.cs" />
+    <Compile Include="model\parser\Constant.cs" />
+    <Compile Include="model\parser\Expression.cs" />
     <Compile Include="serialization\xml_serializer\RepeaterCompression.cs" />
     <Compile Include="serialization\xml_serializer\RomByteEncoding.cs" />
     <Compile Include="serialization\xml_serializer\SubstitutionCompression.cs" />
@@ -168,7 +170,6 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="model\ROMByte.cs" />
   </ItemGroup>
-  <ItemGroup />
   <ItemGroup>
     <None Include="app.config" />
     <None Include="packages.config" />

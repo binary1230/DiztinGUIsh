@@ -1,4 +1,6 @@
-﻿using System.Linq;
+﻿using System.IO;
+using System.Linq;
+using Diz.Core.model.parser;
 using Diz.Core.util;
 using IX.Observable;
 
@@ -13,6 +15,8 @@ namespace Diz.Core.model
         private ObservableDictionary<int, string> comments;
         private ObservableDictionary<int, Label> labels;
         private RomBytes romBytes;
+        private DizExpressionCollection expressions;
+        private DizConstantCollection constants;
 
         // Note: order of these public properties matters for the load/save process. Keep 'RomBytes' LAST
         // TODO: should be a way in the XML serializer to control the order, remove this comment
@@ -40,6 +44,18 @@ namespace Diz.Core.model
         {
             get => labels;
             set => SetField(ref labels, value);
+        }
+        
+        public DizExpressionCollection Expressions
+        {
+            get => expressions;
+            set => SetField(ref expressions, value);
+        }
+        
+        public DizConstantCollection Constants
+        {
+            get => constants;
+            set => SetField(ref constants, value);
         }
 
         // RomBytes stored as PC file offset addresses (since ROM will always be mapped to disk)
@@ -77,4 +93,5 @@ namespace Diz.Core.model
         }
         #endregion
     }
+    
 }

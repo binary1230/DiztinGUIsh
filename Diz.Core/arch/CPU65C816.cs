@@ -1,4 +1,5 @@
-﻿using Diz.Core.model;
+﻿using System.Diagnostics;
+using Diz.Core.model;
 using Diz.Core.util;
 
 namespace Diz.Core.arch
@@ -142,29 +143,40 @@ namespace Diz.Core.arch
 
         public string GetInstruction(int offset)
         {
-            AddressMode mode = GetAddressMode(offset);
-            string format = GetInstructionFormatString(offset);
-            string mnemonic = GetMnemonic(offset);
-            string op1, op2 = "";
-            if (mode == AddressMode.BlockMove)
+            var mode = GetAddressMode(offset);
+            var format = GetInstructionFormatString(offset);
+            var mnemonic = GetMnemonic(offset);
+            string op1 = "", op2 = "";
+            switch (mode)
             {
-                op1 = Util.NumberToBaseString(data.GetRomByte(offset + 1), Util.NumberBase.Hexadecimal, 2, true);
-                op2 = Util.NumberToBaseString(data.GetRomByte(offset + 2), Util.NumberBase.Hexadecimal, 2, true);
-            }
-            else if (mode == AddressMode.Constant8 || mode == AddressMode.Immediate8)
-            {
-                op1 = Util.NumberToBaseString(data.GetRomByte(offset + 1), Util.NumberBase.Hexadecimal, 2, true);
-            }
-            else if (mode == AddressMode.Immediate16)
-            {
-                op1 = Util.NumberToBaseString(data.GetRomWord(offset + 1), Util.NumberBase.Hexadecimal, 4, true);
-            }
-            else
-            {
-                // dom note: this is where we could inject expressions if needed. it gives stuff like "$F001".
-                // we could substitute our expression of "$#F000 + $#01" or "some_struct.member" like "player.hp"
-                // the expression must be verified to always match the bytes in the file [unless we allow overriding]
-                op1 = FormatOperandAddress(offset, mode);
+                case AddressMode.BlockMove:
+                    op1 = Util.NumberToBaseString(data.GetRomByte(offset + 1), Util.NumberBase.Hexadecimal, 2, true);
+                    op2 = Util.NumberToBaseString(data.GetRomByte(offset + 2), Util.NumberBase.Hexadecimal, 2, true);
+                    break;
+                case AddressMode.Constant8:
+                case AddressMode.Immediate8:
+                {
+                    var operandOffset = offset + 1;
+                    var actualValueFromRom = data.GetRomByte(operandOffset);
+
+                    if (data.Expressions.Expressions.TryGetValue(offset, out var expression))
+                    {
+                        var (parseValue, parseOutput) = expression.GetExpressionResult(actualValueFromRom, 1, data);
+                        Debug.Assert(actualValueFromRom == parseValue); // must ALWAYS be true.
+                        op1 = parseOutput;
+                    }
+                    
+                    if (op1 == "")
+                        op1 = Util.NumberToBaseString(actualValueFromRom, Util.NumberBase.Hexadecimal, 2, true);
+
+                    break;
+                }
+                case AddressMode.Immediate16:
+                    op1 = Util.NumberToBaseString(data.GetRomWord(offset + 1), Util.NumberBase.Hexadecimal, 4, true);
+                    break;
+                default:
+                    op1 = FormatOperandAddress(offset, mode);
+                    break;
             }
             return string.Format(format, mnemonic, op1, op2);
         }
