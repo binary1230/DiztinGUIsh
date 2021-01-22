@@ -6,7 +6,7 @@ namespace Diz.Core.model.parser
 {
     public class DizExpressionCollection
     {
-        // SNES address -> expression
+        // ROM address -> expression
         public ObservableDictionary<int, DizExpression> Expressions = new ObservableDictionary<int, DizExpression>();
     }
 

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Diz.Core.export;
 using Diz.Core.model;
+using Diz.Core.model.parser;
 using Diz.Core.util;
 using Diz.Test.Utils;
 using IX.Observable;
@@ -23,6 +24,7 @@ namespace Diz.Test
             "                        STA.W $0100,X                        ;808003|9D0001  |800100;  \r\n" +
             "           Test22:      DEX                                  ;808006|CA      |      ;  \r\n" +
             "                        BPL CODE_808000                      ;808007|10F7    |808000;  \r\n" +
+            "                        BIT.B #HP_LOSS_FLAG                  ;808009|8910    |      ;  \r\n" + 
             "                                                             ;      |        |      ;  \r\n" +
             "                        Test_Data = $80805B                  ;      |        |      ;  \r\n";
 
@@ -58,9 +60,31 @@ namespace Diz.Test
                     // BPL CODE_808000
                     new RomByte {Rom = 0x10, TypeFlag = Data.FlagType.Opcode, MFlag = true, Point = Data.InOutPoint.OutPoint, DataBank = 0x80, DirectPage = 0x2100},
                     new RomByte {Rom = 0xF7, TypeFlag = Data.FlagType.Operand, DataBank = 0x80, DirectPage = 0x2100},
-                
+                    
+                    // BIT.B #HP_LOSS_FLAG
+                    new RomByte {Rom = 0x89, TypeFlag = Data.FlagType.Opcode, MFlag = true, DataBank = 0x80, DirectPage = 0x2100},
+                    new RomByte {Rom = 0x10, TypeFlag = Data.FlagType.Operand, DataBank = 0x80, DirectPage = 0x2100},
+
                     // ------------------------------------
-                }
+                },
+                Constants = new DizConstantCollection()
+                {
+                    Constants = new ObservableDictionary<string, DizConstant>()
+                    {
+                        // #HP_LOSS_FLAG is defined as equal to 0x10
+                        {"HP_LOSS_FLAG", new DizConstant() {Value = 0x10}},
+                    }
+                },
+                Expressions = new DizExpressionCollection()
+                {
+                    Expressions = new ObservableDictionary<int, DizExpression>()
+                    {
+                        // at ROM offset 0x09....
+                        // BIT.B #HP_LOSS_FLAG
+                        //       ^^^^^^^^^^^^^ --> we should evaluate this as the expression
+                        {0x09, new DizExpression() {Expression = "#HP_LOSS_FLAG"}}
+                    }
+                },
             };
         
         [Fact]
