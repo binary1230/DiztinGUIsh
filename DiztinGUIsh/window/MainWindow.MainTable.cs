@@ -376,5 +376,18 @@ namespace DiztinGUIsh.window
             table.CurrentCell = table.Rows[table.CurrentCell.RowIndex].Cells[0];
             table.BeginEdit(true);
         }
+
+
+        private void table_CellContentDoubleClick(object sender, DataGridViewCellEventArgs e)
+        {
+            if (e.ColumnIndex != 5)
+                return;
+
+            var originalText = table.Rows[table.CurrentCell.RowIndex].Cells[5].Value.ToString();
+
+            // TODO: dialog box
+
+            table.InvalidateRow(e.RowIndex);
+        }
     }
 }

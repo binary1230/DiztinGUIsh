@@ -24,14 +24,12 @@ namespace Diz.Core.model.parser
                 {
                     var constantStr = Expression.Substring(2); // check length/range
                     var parsedValue = ByteUtil.ByteParseHex(constantStr);
-                    return (value: (int)parsedValue, final_txt: "");
+                    return ((int)parsedValue, "");
                 }
-                else
-                {
-                    var possibleConstantName = Expression.Substring(1);
-                    var constant = data.Constants.Constants[possibleConstantName];
-                    return (value: constant.Value, final_txt: possibleConstantName);
-                }
+
+                var possibleConstantName = Expression.Substring(1);
+                var constant = data.Constants.Constants[possibleConstantName];
+                return (constant.Value, possibleConstantName);
             }
             
             throw new InvalidDataException("Parse error");
@@ -63,7 +61,7 @@ namespace Diz.Core.model.parser
                 throw new InvalidDataException($"Expression must equal {parseResult.Item1} but instead it's {valueMustEqual}");
             
             if (!ValidateNumBytes(parseResult.Item1, numBytesMustEqual))
-                throw new InvalidDataException($"Expression not correct number of bytes");
+                throw new InvalidDataException("Expression not correct number of bytes");
 
             return parseResult;
         }

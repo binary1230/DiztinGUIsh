@@ -24,6 +24,11 @@ namespace Diz.Core.model
             cpu65C816 = new Cpu65C816(this);
             expressions = new DizExpressionCollection();
             constants = new DizConstantCollection();
+            
+            // TEST HACK - DONT CHECK IN FOR FINAL
+            // constants.Constants["HP_LOSS_FLAG"] = new DizConstant() {Value = 0x10};
+            // expressions.Expressions[0x18AF6] = new DizExpression() {Expression = "#HP_LOSS_FLAG"};
+            // END TEST HACK
         }
 
         public void CreateRomBytesFromRom(IEnumerable<byte> actualRomBytes)
