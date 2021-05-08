@@ -1,8 +1,10 @@
 ﻿using System;
 using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 using Diz.Core.model;
 using Diz.Core.serialization;
+using DiztinGUIsh.util;
 
 namespace DiztinGUIsh.controller
 {
@@ -16,7 +18,7 @@ namespace DiztinGUIsh.controller
             var errorMsg = "";
             var warningMsg = "";
 
-            DoLongRunningTask(() =>
+            ProgressReportingGuiUtils.DoLongRunningTask(() =>
             {
                 try
                 {
@@ -51,14 +53,6 @@ namespace DiztinGUIsh.controller
             
             Handler.OnProjectOpenSuccess(filename, project);
             return project;
-        }
-
-        private void DoLongRunningTask(Action task, string description)
-        {
-            if (Handler.TaskHandler != null)
-                Handler.TaskHandler(task, description);
-            else
-                task();
         }
     }
 }

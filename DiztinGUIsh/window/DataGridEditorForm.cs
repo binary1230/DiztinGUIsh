@@ -677,8 +677,8 @@ namespace DiztinGUIsh.window
         private void githubToolStripMenuItem_Click(object sender, EventArgs e) =>
             GuiUtil.OpenExternalProcess("https://github.com/Dotsarecool/DiztinGUIsh");
         
-        public ILongRunningTaskHandler.LongRunningTaskHandler TaskHandler =>
-            ProgressBarJob.RunAndWaitForCompletion;
+        // public ILongRunningTaskHandler.LongRunningTaskHandler TaskHandler =>
+        //     ProgressBarJob.RunAndWaitForCompletion;
 
         private void viewOpcodesOnly_click(object sender, EventArgs e) => 
             DataGridDataController.FilterShowOpcodesOnly = !DataGridDataController.FilterShowOpcodesOnly;

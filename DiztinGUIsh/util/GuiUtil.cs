@@ -23,15 +23,13 @@ namespace DiztinGUIsh.util
 
         public static void InvokeIfRequired(this ISynchronizeInvoke obj, MethodInvoker action)
         {
-            if (obj.InvokeRequired)
-            {
-                var args = new object[0];
-                obj.Invoke(action, args);
-            }
-            else
+            if (!obj.InvokeRequired)
             {
                 action();
+                return;
             }
+            
+            obj.Invoke(action, Array.Empty<object>());
         }
 
         public static string PromptToSelectFile(string initialDirectory = null)

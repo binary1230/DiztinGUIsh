@@ -4,13 +4,13 @@ using DiztinGUIsh.window.dialog;
 
 namespace DiztinGUIsh.controller
 {
-    public interface ILongRunningTaskHandler
-    {
-        public delegate void LongRunningTaskHandler(Action task, string description = null);
-        LongRunningTaskHandler TaskHandler { get; }
-    }
+    // public interface ILongRunningTaskHandler
+    // {
+    //     public delegate void LongRunningTaskHandler(Action task, string description = null);
+    //     LongRunningTaskHandler TaskHandler { get; }
+    // }
     
-    public interface IProjectView : ILongRunningTaskHandler
+    public interface IProjectView // : ILongRunningTaskHandler
     {
         void OnProjectOpenWarning(string warningMsg);
         void OnProjectOpenFail(string errorMsg);

@@ -42,7 +42,7 @@ namespace DiztinGUIsh.controller
         private FlagType currentMarkFlag = FlagType.Data8Bit;
         private int selectedSnesOffset;
         private IDataGridEditorForm dataGridEditorForm;
-        public ILongRunningTaskHandler.LongRunningTaskHandler TaskHandler => ProgressBarJob.RunAndWaitForCompletion;
+        // public ILongRunningTaskHandler.LongRunningTaskHandler TaskHandler => ProgressBarJob.RunAndWaitForCompletion;
 
         public int SelectedSnesOffset
         {
@@ -97,17 +97,6 @@ namespace DiztinGUIsh.controller
             }
         }
 
-        // there's probably better ways to handle this.
-        // probably replace with a UI like "start task" and "stop task"
-        // so we can flip up a progress bar and remove it.
-        public void DoLongRunningTask(Action task, string description = null)
-        {
-            if (ProjectView.TaskHandler != null)
-                ProjectView.TaskHandler(task, description);
-            else
-                task();
-        }
-
         public void OpenProject(string filename)
         {
             new ProjectOpenerGuiController { Handler = this }
@@ -149,7 +138,7 @@ namespace DiztinGUIsh.controller
 
         public void SaveProject(string filename)
         {
-            DoLongRunningTask(delegate { new ProjectFileManager().Save(Project, filename); },
+            ProgressReportingGuiUtils.DoLongRunningTask(delegate { new ProjectFileManager().Save(Project, filename); },
                 $"Saving {Path.GetFileName(filename)}...");
         }
 
@@ -197,14 +186,15 @@ namespace DiztinGUIsh.controller
             if (!RomDataPresent())
                 return;
             
-            var lc = new LogCreator()
+            var lc = new LogCreator
             {
                 Settings = settings,
                 Data = Project.Data,
             };
 
             LogCreatorOutput.OutputResult result = null;
-            DoLongRunningTask(delegate { result = lc.CreateLog(); }, "Exporting assembly source code...");
+            ProgressReportingGuiUtils.DoLongRunningTask(() => result = lc.CreateLog(),
+                "Exporting assembly source code...");
 
             ProjectView.OnExportFinished(result);
         }
@@ -244,13 +234,19 @@ namespace DiztinGUIsh.controller
             var importer = new BsnesTraceLogImporter(Project.Data);
 
             // TODO: differentiate between binary-formatted and text-formatted files
-            // probably look for a newline within 80 characters
+            // probably look for a newline within 80ish characters
             // call importer.ImportTraceLogLineBinary()
 
             // caution: trace logs can be gigantic, even a few seconds can be > 1GB
             // inside here, performance becomes critical.
-            LargeFilesReader.ReadFilesLines(fileNames,
-                (line) => { importer.ImportTraceLogLine(line); });
+            new LargeFilesReader
+            {
+                Filenames = fileNames,
+                LineReadCallback = line =>
+                {
+                    importer.ImportTraceLogLine(line);
+                },
+            }.RunWithGui();
 
             if (importer.CurrentStats.NumRomBytesModified > 0)
                 MarkProjectAsUnsaved();

@@ -1,9 +1,14 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Threading.Tasks;
 using System.Windows.Forms;
 using DiztinGUIsh.controller;
+using DiztinGUIsh.util;
 using DiztinGUIsh.window;
+using DiztinGUIsh.window.dialog;
+using JetBrains.Annotations;
 
 namespace DiztinGUIsh
 {
@@ -43,10 +48,27 @@ namespace DiztinGUIsh
             controller.SetProject(filename, project);
         }
 
-        public void Run(DizApplicationContext.DizApplicationArgs args)
+        public async Task Run(DizApplicationContext.DizApplicationArgs args)
         {
             Application.ApplicationExit += OnApplicationExit;
             GlobalViewControllers.AllFormsClosed += (_, _) => Application.Exit();
+            
+            // debug hack junk
+            Console.WriteLine("*****DizApplication::Run()-> Starting REALLY DUMB TASK");
+            await new ReallyDumbTask { InputNum = 3 }.RunWithGui();
+            Console.WriteLine("*****DizApplication::Run()-> Done REALLY DUMB TASK");
+            
+            
+            
+            // debug hack junk
+            Console.WriteLine("*****DizApplication::Run()-> Starting REALLY DUMB TASK #2");
+            await new ReallyDumbTask { InputNum = 3 }.RunWithGui();
+            Console.WriteLine("*****DizApplication::Run()-> Done REALLY DUMB TASK #2");
+
+
+            return;
+            
+            
 
             // kick us off with the home screen
             ShowNewStartForm();

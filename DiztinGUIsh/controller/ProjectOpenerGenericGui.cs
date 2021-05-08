@@ -1,4 +1,5 @@
-﻿using System.Windows.Forms;
+﻿using System.Threading.Tasks;
+using System.Windows.Forms;
 using Diz.Core.model;
 using DiztinGUIsh.util;
 
@@ -6,10 +7,10 @@ namespace DiztinGUIsh.controller
 {
     public class ProjectOpenerHandlerGenericHandler : IProjectOpenerHandler
     {
-        public bool MessageboxShowOnProjectOpenSuccess { get; init; }= true;
-        
-        public ILongRunningTaskHandler.LongRunningTaskHandler TaskHandler =>
-            ProgressBarJob.RunAndWaitForCompletion;
+        public bool MessageboxShowOnProjectOpenSuccess { get; init; } = true;
+
+        // public ILongRunningTaskHandler.LongRunningTaskHandler TaskHandler =>
+        //     ProgressBarJob.RunAndWaitForCompletion;
 
         public void OnProjectOpenSuccess(string filename, Project project)
         {
@@ -30,18 +31,20 @@ namespace DiztinGUIsh.controller
         public string AskToSelectNewRomFilename(string error)
         {
             string initialDir = null; // TODO: Project.ProjectFileName
-            return GuiUtil.PromptToConfirmAction("Error", $"{error} Link a new ROM now?", 
+            return GuiUtil.PromptToConfirmAction("Error", $"{error} Link a new ROM now?",
                 () => GuiUtil.PromptToSelectFile(initialDir)
             );
         }
 
-        public static Project OpenProjectWithGui(string filename, bool showMessageBoxOnSuccess = true) => 
-            new ProjectOpenerGuiController
+        public static Project OpenProjectWithGui2(string filename, bool showMessageBoxOnSuccess = true)
+        {
+            return new ProjectOpenerGuiController
             {
                 Handler = new ProjectOpenerHandlerGenericHandler
                 {
                     MessageboxShowOnProjectOpenSuccess = showMessageBoxOnSuccess
                 }
             }.OpenProject(filename);
+        }
     }
 }

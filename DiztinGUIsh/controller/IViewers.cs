@@ -1,17 +1,21 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Windows.Forms;
 using Diz.Core.util;
 
 namespace DiztinGUIsh.controller
 {
     public interface IViewer
     {
-
+        
     }
 
     public interface IFormViewer : IViewer, ICloseHandler
     {
-
+        public DialogResult ShowDialog();
+        void Show();
+        void Close();
+        bool IsDisposed { get; }
     }
 
     public interface IBytesGridViewer<TByteItem> : IViewer
@@ -23,7 +27,6 @@ namespace DiztinGUIsh.controller
         int TargetNumberOfRowsToShow { get; }
 
         void SelectRow(int row);
-        
 
         void BeginEditingSelectionComment();
         void BeginEditingSelectionLabel();

@@ -72,7 +72,7 @@ namespace DiztinGUIsh.controller
         bool ImportRomAndCreateNewProject(string romFilename);
     }
     
-    public interface IProjectOpenerHandler : ILongRunningTaskHandler
+    public interface IProjectOpenerHandler // : ILongRunningTaskHandler
     {
         public void OnProjectOpenSuccess(string filename, Project project);
         public void OnProjectOpenWarning(string warnings);

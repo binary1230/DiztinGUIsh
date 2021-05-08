@@ -1,66 +1,69 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Threading.Tasks;
 using Diz.Core.util;
+using DiztinGUIsh.window.dialog;
 
 namespace DiztinGUIsh.util
 {
-    public class LargeFilesReader : ProgressBarWorker
+    public class LargeFilesReader : IDizTask
     {
-        public List<string> Filenames { get; set; }
-        public Action<string> LineReadCallback { get; set; }
+        public IEnumerable<string> Filenames { get; init; }
+        public Action<string> LineReadCallback { get; init; }
 
-        protected long SumFileLengthsInBytes { get; set; }
-        protected long BytesReadFromPreviousFiles { get; set; }
+        private long sumFileLengthsInBytes;
+        private long bytesReadFromPreviousFiles;
+        private int lastReportedProgress;
+        
+        public IProgress<ProgressReport> Progress { get; set; }
 
-        protected override void Thread_DoWork()
+        public async Task Run()
         {
-            SumFileLengthsInBytes = 0L;
-            foreach (var filename in Filenames)
-            {
-                SumFileLengthsInBytes += Util.GetFileSizeInBytes(filename);
-            }
-
-            BytesReadFromPreviousFiles = 0L;
-            foreach (var filename in Filenames)
-            {
-                using var fs = File.Open(filename, FileMode.Open, FileAccess.Read);
-                using var bs = new BufferedStream(fs);
-                using var sr = new StreamReader(bs);
-                string line;
-                while ((line = sr.ReadLine()) != null)
-                {
-                    LineReadCallback(line);
-                    UpdateProgress(fs.Position);
-                }
-
-                BytesReadFromPreviousFiles += fs.Length;
-            }
+            Init();
+            foreach (var filename in Filenames) 
+                await ReadFile(filename);
         }
 
-        private int previousProgress;
-
-        protected void UpdateProgress(long currentPositionInBytes)
+        private void Init()
         {
-            var percent = (BytesReadFromPreviousFiles + currentPositionInBytes) / (float)SumFileLengthsInBytes;
-            var progressValue = (int)(percent * 100);
+            sumFileLengthsInBytes = 0L;
+            foreach (var filename in Filenames) 
+                sumFileLengthsInBytes += Util.GetFileSizeInBytes(filename);
 
-            if (progressValue <= previousProgress)
-                return;
-
-            // don't do this too often, kinda slow due to thread synchronization.
-            base.UpdateProgress(progressValue);
-
-            previousProgress = progressValue;
+            bytesReadFromPreviousFiles = 0L;
         }
-        public static void ReadFilesLines(string[] filenames, Action<string> lineReadCallback)
+
+        private async Task ReadFile(string filename)
         {
-            var lfr = new LargeFilesReader()
+            await using var fs = File.Open(filename, FileMode.Open, FileAccess.Read);
+            await using var bs = new BufferedStream(fs);
+            using var sr = new StreamReader(bs);
+            string line;
+            while ((line = await sr.ReadLineAsync()) != null)
             {
-                Filenames = new List<string>(filenames),
+                LineReadCallback(line);
+                UpdateProgress(fs.Position);
+            }
+
+            bytesReadFromPreviousFiles += fs.Length;
+        }
+
+        private void UpdateProgress(long currentPositionInBytes) => 
+            Progress?.ReportIfNeeded(GetCurrentProgressPercent(currentPositionInBytes), ref lastReportedProgress);
+        
+        private float GetCurrentProgressPercent(long currentPositionInBytes) => 
+            (bytesReadFromPreviousFiles + currentPositionInBytes) / (float)sumFileLengthsInBytes;
+
+        public static void ReadFilesLines(IEnumerable<string> filenames, Action<string> lineReadCallback)
+        {
+            var largeFilesReader = new LargeFilesReader
+            {
+                Filenames = filenames,
                 LineReadCallback = lineReadCallback,
             };
-            lfr.Run();
+
+            largeFilesReader.RunWithGui();
         }
     }
 }
