@@ -14,14 +14,32 @@ namespace Diz.Core.model.byteSources
         where 
         T : IParentReferenceTo<Storage<T>>, new()
     {
+        public override int IndexOf(T item) => bytes.IndexOf(item);
+        public override void Insert(int index, T item)
+        {
+            var existing = index < bytes.Count ? bytes[index] : default;
+            
+            bytes[index] = item;
+            SetParentInfoFor(item, index);
+            
+            if (existing != null)
+                ClearParentInfoFor(item);
+        }
+
+        public override void RemoveAt(int index)
+        {
+            var existing = index < bytes.Count ? bytes[index] : default;
+            
+            bytes.RemoveAt(index);
+            
+            if (existing != null)
+                OnRemoved(existing);
+        }
+
         public override T this[int index]
         {
             get => bytes[index];
-            set
-            {
-                SetParentInfoFor(value, index);
-                bytes[index] = value;
-            }
+            set => Insert(index, value);
         }
         
         public override void Clear()

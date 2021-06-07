@@ -5,6 +5,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Xml.Serialization;
+using DynamicData;
 using JetBrains.Annotations;
 
 namespace Diz.Core.model.byteSources
@@ -52,26 +53,25 @@ namespace Diz.Core.model.byteSources
             return bytes.Keys.Last();
         }
 
-        public bool ContainsKey(int key)
+        public bool ContainsKey(int key) => bytes.ContainsKey(key);
+        public bool TryGetValue(int key, out T value) => bytes.TryGetValue(key, out value);
+        public override int IndexOf(T item) => bytes.Values.IndexOf(item);
+        public override void Insert(int index, T item) => SetValue(index, item);
+        public override void RemoveAt(int index)
         {
-            return bytes.ContainsKey(key);
-        }
-
-        public bool TryGetValue(int key, out T value)
-        {
-            return bytes.TryGetValue(key, out value);
+            _RemoveKey(index);
         }
 
         public override T this[int index]
         {
-            get => GetByte(index);
-            set => SetByte(index, value);
+            get => GetValue(index);
+            set => SetValue(index, value);
         }
 
         public object this[object key]
         {
-            get => GetByte((int)key);
-            set => SetByte((int)key, (T)value);
+            get => GetValue((int)key);
+            set => SetValue((int)key, (T)value);
         }
 
         public ICollection<int> Keys => bytes.Keys;
@@ -99,20 +99,14 @@ namespace Diz.Core.model.byteSources
 
         public bool IsFixedSize => ((IDictionary) bytes).IsFixedSize;
 
-        public bool Contains(KeyValuePair<int, T> item)
-        {
-            return bytes.Contains(item);
-        }
+        public bool Contains(KeyValuePair<int, T> item) => 
+            bytes.Contains(item);
 
-        public void CopyTo(KeyValuePair<int, T>[] array, int arrayIndex)
-        {
+        public void CopyTo(KeyValuePair<int, T>[] array, int arrayIndex) => 
             bytes.CopyTo(array, arrayIndex);
-        }
 
-        public override bool Contains(T item)
-        {
-            return item != null && bytes.Keys.Contains(item.ParentIndex);
-        }
+        public override bool Contains(T item) => 
+            item != null && bytes.Keys.Contains(item.ParentIndex);
 
         public override void CopyTo(T[] array, int arrayIndex)
         {
@@ -190,18 +184,21 @@ namespace Diz.Core.model.byteSources
             return true;
         }
 
-        public override void CopyTo(Array array, int index)
-        {
+        public override void CopyTo(Array array, int index) => 
             CopyTo((T[])array, index);
-        }
 
-        private void SetByte(int index, T value)
+        private void SetValue(int index, T value)
         {
             ValidateIndex(index);
-            SetParentInfoFor(value, index);
 
+            var existing = index < bytes.Count ? bytes[index] : default;
+            SetParentInfoFor(value, index);
+            
             // will replace if it exists
             bytes[index] = value;
+            
+            if (existing != null)
+                OnRemoved(existing);
         }
 
         // NOTE: "valid index" means is it in range of [0....Count-1]
@@ -215,7 +212,7 @@ namespace Diz.Core.model.byteSources
                 throw new ArgumentOutOfRangeException($"Index {index} out of range in SparseByteStorage");   
         }
 
-        protected T GetByte(int index)
+        protected T GetValue(int index)
         {
             ValidateIndex(index);
             return bytes.GetValueOrDefault(index);
@@ -256,7 +253,7 @@ namespace Diz.Core.model.byteSources
                 Add(b);
                 
                 // each byte added will tick up the count, when in reality we're filling in an existing container.
-                // correct that here.
+                // we correct for that here.
                 count--;
             }
         }
@@ -343,7 +340,7 @@ namespace Diz.Core.model.byteSources
             return bytes.GetEnumerator();
         }
 
-        protected bool Equals(StorageSparse<T> other)
+        private bool Equals(StorageSparse<T> other)
         {
             if (count != other.count || bytes.Count != other.bytes.Count)
                 return false;

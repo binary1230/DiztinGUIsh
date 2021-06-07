@@ -5,10 +5,10 @@ namespace Diz.Core.model.byteSources
 {
     public class GapFillingEnumerator<T> : IEnumerator<T>
     {
-        public IShouldReallyBeAListButIAmLazy<T> Collection { get; protected set; }
-        public int Position { get; set; } = -1;
+        public IList<T> Collection { get; protected set; }
+        public int Position { get; private set; } = -1;
 
-        public GapFillingEnumerator(IShouldReallyBeAListButIAmLazy<T> collection)
+        public GapFillingEnumerator(IList<T> collection)
         {
             Debug.Assert(collection != null);
             Collection = collection;

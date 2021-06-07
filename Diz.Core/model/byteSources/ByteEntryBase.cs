@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Threading;
 using System.Xml.Serialization;
 using JetBrains.Annotations;
@@ -7,7 +8,7 @@ using JetBrains.Annotations;
 namespace Diz.Core.model.byteSources
 {
     // JUST holds the data. no graph traversal.
-    public partial class ByteEntry : IParentReferenceTo<Storage<ByteEntry>>
+    public partial class ByteEntry : IParentReferenceTo<Storage<ByteEntry>> //, INotifyPropertyChanged
     {
         // TODO: without the memory optimization of on-demand Annotation creation on the fly,
         // this can be removed and regular object initialization handles this fine now.

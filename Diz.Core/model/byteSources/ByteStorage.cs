@@ -8,60 +8,14 @@ using System.Xml.Serialization;
 
 namespace Diz.Core.model.byteSources
 {
-    
     // a child who keeps track of their parent AND INDEX
     public interface IParentReferenceTo<TParent>
     {
         int ParentIndex { get; set; }
         TParent Parent { get; set; } // TODO: change to TParent later if we can
     }
-
-    // a child who keeps track of their parent (no index need be involved)
-    // public interface IAmItemThatTracksMyParent<TParent>
-    // {
-    //     
-    // }
     
-    // this is hot garbage. replace with IList<T> and just suck it up and implement the rest.
-    public interface IShouldReallyBeAListButIAmLazy<T> : ICollection<T>
-    {
-        T this[int index] { get; set; }
-    }
-
-    /*
-    public interface IStorage<TItem> : IShouldReallyBeAListButIAmLazy<TItem> where
-        // our items: Track their parent and parent index, and it must be a parent of IStorage<Item> (us)
-        TItem : IParentReferenceTo<IStorage<TItem>>
-    {
-        
-    }
-    
-    public interface IStorageWithParent<TItem, TOurParent> :
-        // 1) we're storage that tracks an item type
-        IStorage<TItem>,
-        
-        // 2) we are (unrelated) a child that also keeps track of our own (different) parent
-        IAmItemThatTracksMyParent<TOurParent>
-        
-        where
-        
-        // we promise we're only storing items that know how to:
-        // track their parent (us) and parentindex (index into us)
-        TItem : IParentReferenceTo<IStorageWithParent<TItem, TOurParent>>
-    {
-        
-    }
-
-    public interface IByteStorage : Storage<ByteEntry> // add in for actual interfaces 
-        // we are a class that stores TItems, and OUR parent is TOurParent
-        //where 
-        //TItemWeStore : IParentReferenceTo<IStorage<TItemWeStore>>
-    {
-        // IEnumerator<ByteEntry> GetNativeEnumerator();
-    }*/
-
-    public abstract class Storage<T> :
-        IShouldReallyBeAListButIAmLazy<T>
+    public abstract class Storage<T> : IList<T>
         // // we are a class that stores TItems, and OUR parent is TOurParent
         // IStorageWithParent<TItemWeStore, TOurParent> 
         where 
@@ -77,6 +31,10 @@ namespace Diz.Core.model.byteSources
         [XmlIgnore] public bool IsReadOnly => false;
         [XmlIgnore] public bool IsSynchronized => false;
         [XmlIgnore] public object SyncRoot => default;
+
+        public abstract int IndexOf(T item);
+        public abstract void Insert(int index, T item);
+        public abstract void RemoveAt(int index);
 
         public abstract T this[int index] { get; set; }
 
