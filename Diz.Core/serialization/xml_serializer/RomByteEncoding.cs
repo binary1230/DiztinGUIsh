@@ -18,28 +18,30 @@ namespace Diz.Core.serialization.xml_serializer
             public FlagType F;
         };
 
-        private static readonly IReadOnlyCollection<FlagEncodeEntry> FlagEncodeTable = new List<FlagEncodeEntry> {
-            new FlagEncodeEntry() {F = FlagType.Unreached, C = 'U'},
+        private static readonly IReadOnlyCollection<FlagEncodeEntry> FlagEncodeTable = 
+            new List<FlagEncodeEntry> 
+        {
+            new() {F = FlagType.Unreached, C = 'U'},
 
-            new FlagEncodeEntry() {F = FlagType.Opcode, C = '+'},
-            new FlagEncodeEntry() {F = FlagType.Operand, C = '.'},
+            new() {F = FlagType.Opcode, C = '+'},
+            new() {F = FlagType.Operand, C = '.'},
 
-            new FlagEncodeEntry() {F = FlagType.Graphics, C = 'G'},
-            new FlagEncodeEntry() {F = FlagType.Music, C = 'M'},
-            new FlagEncodeEntry() {F = FlagType.Empty, C = 'X'},
-            new FlagEncodeEntry() {F = FlagType.Text, C = 'T'},
+            new() {F = FlagType.Graphics, C = 'G'},
+            new() {F = FlagType.Music, C = 'M'},
+            new() {F = FlagType.Empty, C = 'X'},
+            new() {F = FlagType.Text, C = 'T'},
 
-            new FlagEncodeEntry() {F = FlagType.Data8Bit, C = 'A'},
-            new FlagEncodeEntry() {F = FlagType.Data16Bit, C = 'B'},
-            new FlagEncodeEntry() {F = FlagType.Data24Bit, C = 'C'},
-            new FlagEncodeEntry() {F = FlagType.Data32Bit, C = 'D'},
+            new() {F = FlagType.Data8Bit, C = 'A'},
+            new() {F = FlagType.Data16Bit, C = 'B'},
+            new() {F = FlagType.Data24Bit, C = 'C'},
+            new() {F = FlagType.Data32Bit, C = 'D'},
 
-            new FlagEncodeEntry() {F = FlagType.Pointer16Bit, C = 'E'},
-            new FlagEncodeEntry() {F = FlagType.Pointer24Bit, C = 'F'},
-            new FlagEncodeEntry() {F = FlagType.Pointer32Bit, C = 'G'},
+            new() {F = FlagType.Pointer16Bit, C = 'E'},
+            new() {F = FlagType.Pointer24Bit, C = 'F'},
+            new() {F = FlagType.Pointer32Bit, C = 'G'},
         };
 
-        private readonly StringBuilder cachedPadSb = new StringBuilder(LineMaxLen);
+        private readonly StringBuilder cachedPadSb = new(LineMaxLen);
 
         private const int LineMaxLen = 9;
 
