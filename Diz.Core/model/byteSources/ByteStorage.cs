@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Xml.Serialization;
+using JetBrains.Annotations;
 
 // TODO: we can probably simplify most of this by replacing the parent class with ParentAwareCollection<ByteSource, ByteEntry>
 
@@ -45,6 +46,7 @@ namespace Diz.Core.model.byteSources
         public abstract bool Remove(T val);
         public abstract void CopyTo(Array array, int index);
 
+        [UsedImplicitly]
         protected Storage()
         {
             InitFromEmpty(0);

@@ -3,12 +3,13 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Threading;
 using System.Xml.Serialization;
+using Diz.Core.util;
 using JetBrains.Annotations;
 
 namespace Diz.Core.model.byteSources
 {
     // JUST holds the data. no graph traversal.
-    public partial class ByteEntry : IParentReferenceTo<Storage<ByteEntry>> //, INotifyPropertyChanged
+    public partial class ByteEntry : IParentReferenceTo<Storage<ByteEntry>>, INotifyPropertyChangedExt
     {
         // TODO: without the memory optimization of on-demand Annotation creation on the fly,
         // this can be removed and regular object initialization handles this fine now.
@@ -25,7 +26,7 @@ namespace Diz.Core.model.byteSources
             get => dontSetParentOnCollectionItems;
             init
             {
-                dontSetParentOnCollectionItems = value;
+                this.SetField(ref dontSetParentOnCollectionItems, value);
                 if (Annotations != null)
                     Annotations.DontSetParentOnCollectionItems = dontSetParentOnCollectionItems;
             }
@@ -38,9 +39,10 @@ namespace Diz.Core.model.byteSources
         public AnnotationCollection Annotations
         {
             get => GetOrCreateAnnotationsList();
-            [UsedImplicitly] set
+            [UsedImplicitly] 
+            set
             {
-                annotations = value;
+                this.SetField(ref annotations, value);
                 FixupAnnotationItems();
             }
         }
@@ -58,16 +60,29 @@ namespace Diz.Core.model.byteSources
         // TODO: instead of doing this, see if ConcurrentBag or similar classes for the container itself would work?
         public ReaderWriterLockSlim Lock => @lock ??= new ReaderWriterLockSlim();
         private ReaderWriterLockSlim @lock;
+        private int parentIndex;
+        private Storage<ByteEntry> parent;
 
         #region References to parent enclosures
-        
+
         // helper
         // TODO: re-enable (get it working with serialization)
         // [XmlIgnore] public ByteSource ParentByteSource => Parent?.Parent;
 
         // real stuff
-        [XmlIgnore] public int ParentIndex  { get; set; }
-        [XmlIgnore] public Storage<ByteEntry> Parent { get; set; }
+        [XmlIgnore]
+        public int ParentIndex
+        {
+            get => parentIndex;
+            set => this.SetField(ref parentIndex, value);
+        }
+
+        [XmlIgnore]
+        public Storage<ByteEntry> Parent
+        {
+            get => parent;
+            set => this.SetField(ref parent, value);
+        }
 
         #endregion
 
@@ -84,7 +99,8 @@ namespace Diz.Core.model.byteSources
             AnnotationCollection.EffectivelyEqual(Annotations, other?.Annotations);
 
         public T GetOneAnnotation<T>() where T : Annotation => Annotations?.GetOne<T>();
-        public T GetOrCreateAnnotation<T>() where T : Annotation, new() => GetOrCreateAnnotationsList().GetOrCreateOne<T>();
+        public T GetOrCreateAnnotation<T>() where T : Annotation, new() => 
+            GetOrCreateAnnotationsList().GetOrCreateOne<T>();
         public void AddAnnotation(Annotation newAnnotation) => GetOrCreateAnnotationsList().Add(newAnnotation);
         public void RemoveOneAnnotationIfExists<T>() where T : Annotation => Annotations?.RemoveOneIfExists<T>();
         
@@ -111,10 +127,8 @@ namespace Diz.Core.model.byteSources
         }
 
         // really, use this only when doing graph building stuff.  
-        public void AppendAnnotationsFrom(ByteEntry lowerPriorityByteEntry)
-        {
+        public void AppendAnnotationsFrom(ByteEntry lowerPriorityByteEntry) => 
             AppendAnnotationsFrom(lowerPriorityByteEntry?.Annotations);
-        }
 
         #region Equality
 
@@ -142,5 +156,10 @@ namespace Diz.Core.model.byteSources
         #endregion
 
         public ByteEntry() {}
+        public event PropertyChangedEventHandler? PropertyChanged;
+        public void OnPropertyChanged(string propertyName)
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        }
     }
 }
