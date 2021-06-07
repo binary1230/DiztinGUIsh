@@ -21,6 +21,7 @@ namespace Diz.Core.serialization.xml_serializer
             public IConfigurationContainer Get(IConfigurationContainer parameter)
                 => parameter
                     .Type<Project>()
+                    .Name("Project2")
 
                     .Type<ByteEntry>()
                     .Name("B")

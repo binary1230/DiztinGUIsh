@@ -4,6 +4,7 @@ using System.Runtime.CompilerServices;
 using Diz.Core.model.byteSources;
 using Diz.Core.util;
 using JetBrains.Annotations;
+using System.Reactive;
 
 namespace Diz.Core.model
 {
