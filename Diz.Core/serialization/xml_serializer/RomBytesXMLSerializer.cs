@@ -47,7 +47,7 @@ namespace Diz.Core.serialization.xml_serializer
             return FinishRead(romBytes);
         }
 
-        private static ByteEntry[] DecodeAllBytes(List<string> allLines)
+        private static ByteEntry[] DecodeAllBytes(IReadOnlyList<string> allLines)
         {
             // TODO: probably should use parallel LINQ here instead?
             
@@ -75,7 +75,7 @@ namespace Diz.Core.serialization.xml_serializer
             return continuation.Result.SelectMany(i => i).ToArray();
         }
 
-        private static Task<ByteEntry[]> CreateDecodeRomBytesTask(List<string> allLines, int nextIndex, int workListCount)
+        private static Task<ByteEntry[]> CreateDecodeRomBytesTask(IReadOnlyList<string> allLines, int nextIndex, int workListCount)
         {
             // ReSharper disable once AccessToStaticMemberViaDerivedType
             return Task<ByteEntry[]>.Run(() => DecodeRomBytes(allLines, nextIndex, workListCount));
