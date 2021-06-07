@@ -25,6 +25,15 @@
           "System.ValueTuple": "4.5.0"
         }
       },
+      "DynamicData": {
+        "type": "Direct",
+        "requested": "[7.1.1, )",
+        "resolved": "7.1.1",
+        "contentHash": "Pc6J5bFnSxEa64PV2V67FMcLlDdpv6m+zTBKSnRN3aLon/WtWWy8kuDpHFbJlgXHtqc6Nxloj9ItuvDlvKC/8w==",
+        "dependencies": {
+          "System.Reactive": "5.0.0"
+        }
+      },
       "ExtendedXmlSerializer": {
         "type": "Direct",
         "requested": "[3.7.1, )",
@@ -208,14 +217,6 @@
         "type": "Transitive",
         "resolved": "2.4.3",
         "contentHash": "U2FC9Y8NyIxxU6MpFFdWWu1xwiqz/61v/Doou7kmVjpeIEMLWyiNNkzNlSE84kyJ0O1LKApuEj5z48Ow0Hi4OQ=="
-      },
-      "DynamicData": {
-        "type": "Transitive",
-        "resolved": "7.1.1",
-        "contentHash": "Pc6J5bFnSxEa64PV2V67FMcLlDdpv6m+zTBKSnRN3aLon/WtWWy8kuDpHFbJlgXHtqc6Nxloj9ItuvDlvKC/8w==",
-        "dependencies": {
-          "System.Reactive": "5.0.0"
-        }
       },
       "FluentValidation": {
         "type": "Transitive",
@@ -1706,7 +1707,7 @@
         "type": "Project",
         "dependencies": {
           "Diz.Core": "3.0.0",
-          "Diz.LogWriter": "1.0.0"
+          "Diz.LogWriter": "3.0.0"
         }
       },
       "diz.core": {
@@ -1718,6 +1719,7 @@
           "JetBrains.Profiler.SelfApi": "2.1.1",
           "SharpZipLib": "1.3.2",
           "System.Diagnostics.Tracing": "4.3.0",
+          "System.Reactive": "5.0.0",
           "System.Resources.Extensions": "5.0.0",
           "System.Text.Encoding.CodePages": "5.0.0"
         }

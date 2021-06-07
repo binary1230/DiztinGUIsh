@@ -720,7 +720,7 @@
         "type": "Project",
         "dependencies": {
           "Diz.Core": "3.0.0",
-          "Diz.LogWriter": "1.0.0"
+          "Diz.LogWriter": "3.0.0"
         }
       },
       "diz.core": {
@@ -732,6 +732,7 @@
           "JetBrains.Profiler.SelfApi": "2.1.1",
           "SharpZipLib": "1.3.2",
           "System.Diagnostics.Tracing": "4.3.0",
+          "System.Reactive": "5.0.0",
           "System.Resources.Extensions": "5.0.0",
           "System.Text.Encoding.CodePages": "5.0.0"
         }
