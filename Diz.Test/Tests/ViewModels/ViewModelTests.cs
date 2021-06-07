@@ -104,7 +104,7 @@ namespace Diz.Test.Tests.ViewModels
             //     .Bind(out bindingData);
             //
             
-            var sourceItems = new SourceList<bool>();
+            var sourceItems = new SourceList<ByteAnnotation>();
 
             // We expose the Connect() since we are interested in a stream of changes.
             // If we have more than one subscriber, and the subscribers are known, 
@@ -115,9 +115,10 @@ namespace Diz.Test.Tests.ViewModels
             // a service mutates the collection, by using .Add(), .Remove(), 
             // .Clear(), .Insert(), etc. DynamicData takes care of
             // allowing you to observe all of those changes.
-            sourceItems.Add(true);
+            sourceItems.Add(new ByteAnnotation {Val = 222});
             sourceItems.RemoveAt(0);
-            sourceItems.Add(false);
+            sourceItems.Add(new ByteAnnotation {Val = 199});
+            sourceItems.Add(new ByteAnnotation {Val = 200});
 
             sourceItems.Connect()
                 // Transform in DynamicData works like Select in
@@ -133,8 +134,18 @@ namespace Diz.Test.Tests.ViewModels
                 // contains the new items and the GUI gets refreshed.
                 .Bind(out var observedItems)
                 .Subscribe();
+
+            var expectedItemsList1 = new List<ByteAnnotation>
+            {
+                new() {Val = 199}, new() {Val = 200}
+            };
             
-            observedItems.Should().Contain(new List<bool>{false});
+            observedItems.Should().Equal(expectedItemsList1);
+            
+            sourceItems.RemoveAt(0);
+            expectedItemsList1.RemoveAt(0);
+            
+            observedItems.Should().Equal(expectedItemsList1);
         }
     }
 }
