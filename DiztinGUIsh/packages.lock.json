@@ -39,6 +39,14 @@
         "resolved": "5.0.0",
         "contentHash": "KBiqY/+W6hWVwucHBHO76JkgBGyawlxCcP946MhK8dNjalaBgZkyHaux8ko58PENTqQHHjoDa7cfIkAchfJPPA=="
       },
+      "DynamicData": {
+        "type": "Transitive",
+        "resolved": "7.1.17",
+        "contentHash": "xCPDDyitEYMtLa+UN985RDQ4VgxLz3MgIjfQgIUC6sYFiO6S+WNTBa/BE6g7WDiz1XFe+JGIJF1SFX0ju2Yl8g==",
+        "dependencies": {
+          "System.Reactive": "5.0.0"
+        }
+      },
       "ExtendedXmlSerializer": {
         "type": "Transitive",
         "resolved": "3.7.1",
@@ -1065,6 +1073,7 @@
       "diz.core": {
         "type": "Project",
         "dependencies": {
+          "DynamicData": "7.1.17",
           "ExtendedXmlSerializer": "3.7.1",
           "FluentValidation": "10.1.0",
           "JetBrains.Annotations": "2021.1.0",
