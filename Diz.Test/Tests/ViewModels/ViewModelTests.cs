@@ -4,6 +4,7 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using System.Reactive.Linq;
 using Diz.Core.model;
+using Diz.Core.model.byteSources;
 using Diz.ViewModels;
 using DynamicData;
 using DynamicData.Binding;
@@ -84,27 +85,11 @@ namespace Diz.Test.Tests.ViewModels
         [Fact]
         void Test3()
         {
-            // ObservableChangeSet.Create<ByteAnnotation,int>(cache=>{}, p=>p.Id);
+            var data = new AnnotationCollection();
 
-            // var observable = new ObservableCollection<ByteAnnotation>()  // new SourceList<ByteAnnotation>()
-            // {
-            //     new() {Val = 22},
-            //     new() {Val = 23},
-            // };
-            //
-            // var seen = new List<byte>();
-
-            // ReadOnlyObservableCollection<byte> bindingData;
-            // var myDerivedList = observable
-            //     .ToObservableChangeSet()
-            //     // .Filter(t => t.Status == "Something")
-            //     .AsObservableList()
-            //     .Connect(x => x.Val != 22)
-            //     .Transform(x=>x.Val)
-            //     .Bind(out bindingData);
-            //
-            
-            var sourceItems = new SourceList<ByteAnnotation>();
+            var sourceItems = data
+                .ToObservableChangeSet()
+                .AsObservableList();
 
             // We expose the Connect() since we are interested in a stream of changes.
             // If we have more than one subscriber, and the subscribers are known, 
@@ -115,11 +100,61 @@ namespace Diz.Test.Tests.ViewModels
             // a service mutates the collection, by using .Add(), .Remove(), 
             // .Clear(), .Insert(), etc. DynamicData takes care of
             // allowing you to observe all of those changes.
-            sourceItems.Add(new ByteAnnotation {Val = 222});
+            data.Add(new ByteAnnotation {Val = 222});
+            data.RemoveAt(0);
+            data.Add(new ByteAnnotation {Val = 199});
+            data.Add(new BranchAnnotation {Point = InOutPoint.InPoint});
+
+            sourceItems.Connect()
+                // Transform in DynamicData works like Select in
+                // LINQ, it observes changes in one collection, and
+                // projects it's elements to another collection.
+                // .Transform(x => !x)
+                // Filter is basically the same as .Where() operator
+                // from LINQ. See all operators in DynamicData docs.
+                // .Filter(x => x)
+                // Ensure the updates arrive on the UI thread.
+                .ObserveOn(RxApp.MainThreadScheduler)
+                // We .Bind() and now our mutable Items collection 
+                // contains the new items and the GUI gets refreshed.
+                .Bind(out var observedItems)
+                .Subscribe();
+
+            var expectedItemsList1 = new List<Annotation>
+            {
+                new ByteAnnotation() {Val = 199}, new BranchAnnotation {Point = InOutPoint.InPoint}
+            };
+            observedItems.Should().Equal(expectedItemsList1);
+            
+            data.RemoveAt(0);
+            expectedItemsList1.RemoveAt(0);
+            observedItems.Should().Equal(expectedItemsList1);
+
+            ((BranchAnnotation) data[0]).Point = ((BranchAnnotation) expectedItemsList1[0]).Point = InOutPoint.ReadPoint;
+            observedItems.Should().Equal(expectedItemsList1);
+        }
+        
+         /*[Fact]
+        void Test4()
+        {
+            var sourceItems = new AnnotationCollection
+            {
+                new ByteAnnotation {Val = 222}
+            };
+
+            // We expose the Connect() since we are interested in a stream of changes.
+            // If we have more than one subscriber, and the subscribers are known, 
+            // it is recommended you look into the Reactive Extension method Publish().
+
+            // With DynamicData you can easily manage mutable datasets,
+            // even if they are extremely large. In this complex scenario 
+            // a service mutates the collection, by using .Add(), .Remove(), 
+            // .Clear(), .Insert(), etc. DynamicData takes care of
+            // allowing you to observe all of those changes.
             sourceItems.RemoveAt(0);
             sourceItems.Add(new ByteAnnotation {Val = 199});
             sourceItems.Add(new ByteAnnotation {Val = 200});
-
+            
             sourceItems.Connect()
                 // Transform in DynamicData works like Select in
                 // LINQ, it observes changes in one collection, and
@@ -139,13 +174,14 @@ namespace Diz.Test.Tests.ViewModels
             {
                 new() {Val = 199}, new() {Val = 200}
             };
-            
             observedItems.Should().Equal(expectedItemsList1);
             
             sourceItems.RemoveAt(0);
             expectedItemsList1.RemoveAt(0);
-            
             observedItems.Should().Equal(expectedItemsList1);
-        }
+
+            observedItems[0].Val = expectedItemsList1[0].Val = 36;
+            observedItems.Should().Equal(expectedItemsList1);
+        }*/
     }
 }
