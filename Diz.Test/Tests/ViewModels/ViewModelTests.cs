@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Collections.Specialized;
 using System.Linq;
 using System.Reactive.Linq;
 using Diz.Core.model;
@@ -17,7 +18,7 @@ namespace Diz.Test.Tests.ViewModels
 {
     public class ViewModelTests
     {
-        public interface IDummy
+       /* public interface IDummy
         {
             void DummyMethod(object observable);
             void DummyMethod<TRet>(TRet obj);
@@ -80,14 +81,14 @@ namespace Diz.Test.Tests.ViewModels
                 mock => mock.DummyMethod(null),
                 Times.Once
             );
-        }
+        }*/
 
         [Fact]
         void Test3()
         {
-            var data = new AnnotationCollection();
+            var sourceAnnotationCollection = new AnnotationCollection();
 
-            var sourceItems = data
+            var observableAnnotations = sourceAnnotationCollection
                 .ToObservableChangeSet()
                 .AsObservableList();
 
@@ -100,12 +101,12 @@ namespace Diz.Test.Tests.ViewModels
             // a service mutates the collection, by using .Add(), .Remove(), 
             // .Clear(), .Insert(), etc. DynamicData takes care of
             // allowing you to observe all of those changes.
-            data.Add(new ByteAnnotation {Val = 222});
-            data.RemoveAt(0);
-            data.Add(new ByteAnnotation {Val = 199});
-            data.Add(new BranchAnnotation {Point = InOutPoint.InPoint});
+            sourceAnnotationCollection.Add(new ByteAnnotation {Val = 222});
+            sourceAnnotationCollection.RemoveAt(0);
+            sourceAnnotationCollection.Add(new ByteAnnotation {Val = 199});
+            sourceAnnotationCollection.Add(new BranchAnnotation {Point = InOutPoint.InPoint});
 
-            sourceItems.Connect()
+            observableAnnotations.Connect()
                 // Transform in DynamicData works like Select in
                 // LINQ, it observes changes in one collection, and
                 // projects it's elements to another collection.
@@ -120,42 +121,71 @@ namespace Diz.Test.Tests.ViewModels
                 .Bind(out var observedItems)
                 .Subscribe();
 
-            var expectedItemsList1 = new List<Annotation>
+            var expected = new List<Annotation>
             {
-                new ByteAnnotation() {Val = 199}, new BranchAnnotation {Point = InOutPoint.InPoint}
+                new ByteAnnotation {Val = 199}, 
+                new BranchAnnotation {Point = InOutPoint.InPoint}
             };
-            observedItems.Should().Equal(expectedItemsList1);
+            observedItems.Should().Equal(expected);
             
-            data.RemoveAt(0);
-            expectedItemsList1.RemoveAt(0);
-            observedItems.Should().Equal(expectedItemsList1);
+            sourceAnnotationCollection.RemoveAt(0);
+            expected.RemoveAt(0);
+            observedItems.Should().Equal(expected);
 
-            ((BranchAnnotation) data[0]).Point = ((BranchAnnotation) expectedItemsList1[0]).Point = InOutPoint.ReadPoint;
-            observedItems.Should().Equal(expectedItemsList1);
+            ((BranchAnnotation) sourceAnnotationCollection[0]).Point = ((BranchAnnotation) expected[0]).Point = InOutPoint.ReadPoint;
+            observedItems.Should().Equal(expected);
         }
-        
-         /*[Fact]
-        void Test4()
+
+        private static ByteEntry CreateSampleEntry() => new()
         {
-            var sourceItems = new AnnotationCollection
+            Byte = 0xCA, MFlag = true, DataBank = 0x80, DirectPage = 0x2100,
+            Annotations = {new Label {Name = "SomeLabel"}, new Comment {Text = "This is a comment"}}
+        };
+
+        private static StorageList<ByteEntry> CreateSampleByteList()
+        {
+            var sample2 = CreateSampleEntry();
+            sample2.Annotations.Add(new BranchAnnotation {Point = InOutPoint.OutPoint});
+            sample2.Annotations.Add(new MarkAnnotation {TypeFlag = FlagType.Opcode});
+
+            return new StorageList<ByteEntry>(new List<ByteEntry>
+                {CreateSampleEntry(), sample2});
+        }
+
+        [Fact]
+        void Test5()
+        {
+            AnnotationCollection MakeAnnotations()
             {
-                new ByteAnnotation {Val = 222}
-            };
+                return new()
+                {
+                    new BranchAnnotation {Point = InOutPoint.OutPoint},
+                    new MarkAnnotation {TypeFlag = FlagType.Opcode},
+                };
+            }
 
-            // We expose the Connect() since we are interested in a stream of changes.
-            // If we have more than one subscriber, and the subscribers are known, 
-            // it is recommended you look into the Reactive Extension method Publish().
-
-            // With DynamicData you can easily manage mutable datasets,
-            // even if they are extremely large. In this complex scenario 
-            // a service mutates the collection, by using .Add(), .Remove(), 
-            // .Clear(), .Insert(), etc. DynamicData takes care of
-            // allowing you to observe all of those changes.
-            sourceItems.RemoveAt(0);
-            sourceItems.Add(new ByteAnnotation {Val = 199});
-            sourceItems.Add(new ByteAnnotation {Val = 200});
+            var underlyingByteStorage = new ObservableCollection<ByteEntry>();
             
-            sourceItems.Connect()
+            underlyingByteStorage.Add(new ByteEntry {
+                Annotations = MakeAnnotations()
+            });
+            underlyingByteStorage.Add(CreateSampleEntry());
+
+
+            var expectedByteStorage = new List<ByteEntry>()
+            {
+                new()
+                {
+                    Annotations = MakeAnnotations()
+                }   
+            };
+            expectedByteStorage.Add(CreateSampleEntry());
+
+            var observable = underlyingByteStorage
+                .ToObservableChangeSet()
+                .AsObservableList();
+            
+            observable.Connect()
                 // Transform in DynamicData works like Select in
                 // LINQ, it observes changes in one collection, and
                 // projects it's elements to another collection.
@@ -168,20 +198,20 @@ namespace Diz.Test.Tests.ViewModels
                 // We .Bind() and now our mutable Items collection 
                 // contains the new items and the GUI gets refreshed.
                 .Bind(out var observedItems)
-                .Subscribe();
-
-            var expectedItemsList1 = new List<ByteAnnotation>
-            {
-                new() {Val = 199}, new() {Val = 200}
-            };
-            observedItems.Should().Equal(expectedItemsList1);
+                .Subscribe(set => Console.WriteLine(set.ToString()));
             
-            sourceItems.RemoveAt(0);
-            expectedItemsList1.RemoveAt(0);
-            observedItems.Should().Equal(expectedItemsList1);
+            observedItems.Should().Equal(expectedByteStorage);
 
-            observedItems[0].Val = expectedItemsList1[0].Val = 36;
-            observedItems.Should().Equal(expectedItemsList1);
-        }*/
+            var called = false;
+            underlyingByteStorage.CollectionChanged += (sender, args) => { called = true; };
+
+            expectedByteStorage.RemoveAt(0);
+            underlyingByteStorage.RemoveAt(0);
+
+            called.Should().Be(true);
+
+            observedItems.Should().ContainSingle();
+            observedItems.Should().Equal(expectedByteStorage);
+        }
     }
 }
