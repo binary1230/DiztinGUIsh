@@ -33,15 +33,11 @@ namespace Diz.Core.model.byteSources
         }
 
         // returns null if none found
-        public ByteEntry BuildFlatByteEntryFor(int index)
-        {
-            return ByteGraphUtil.BuildFlatDataFrom(this, index);
-        }
+        public ByteEntry BuildFlatByteEntryFor(int index) => 
+            ByteGraphUtil.BuildFlatDataFrom(this, index);
 
-        public bool IsValidIndex(int index)
-        {
-            return index >= 0 && index < Bytes?.Count;
-        }
+        public bool IsValidIndex(int index) => 
+            index >= 0 && index < Bytes?.Count;
 
         public void RemoveAllAnnotations(Predicate<Annotation> match)
         {
@@ -57,8 +53,11 @@ namespace Diz.Core.model.byteSources
 
             Bytes[index]?.Annotations?.RemoveAll(match);
 
-            foreach (var childNodes in ChildSources)
-                childNodes.ByteSource.RemoveAllAnnotations(match);
+            foreach (var childSource in ChildSources)
+            {
+                var childIndex = childSource.RegionMapping.ConvertIndexFromParentToChild(index, childSource.ByteSource);
+                childSource.ByteSource.RemoveAllAnnotationsAt(childIndex, match);
+            }
         }
         
         public void AddAnnotation<T>(int index, T newAnnotation) where T : Annotation, new()
@@ -69,11 +68,11 @@ namespace Diz.Core.model.byteSources
             // to child regions (i.e. if we have mapped ROM or WRAM etc), so that annotation can live in the
             // best region. this will make dealing with weird stuff like mirroring, patches, etc much easier.
 
-            var b = Bytes[index];
-            if (b == null)
-                Bytes[index] = b = new ByteEntry();
+            var byteEntry = Bytes[index];
+            if (byteEntry == null)
+                Bytes[index] = byteEntry = new ByteEntry();
 
-            b.AddAnnotation(newAnnotation);
+            byteEntry.AddAnnotation(newAnnotation);
         }
         
         // NOTE: recursion into the graph, careful.
@@ -186,10 +185,8 @@ namespace Diz.Core.model.byteSources
         }
 
         // inefficient helper method to get a copy of any ByteAnnotation in this bytesource
-        public IEnumerable<byte> GetRawBytesCopy()
-        {
-            return Bytes.Select(entry => entry?.Byte ?? 0x00);
-        }
+        public IEnumerable<byte> GetRawBytesCopy() => 
+            Bytes.Select(entry => entry?.Byte ?? 0x00);
 
         public int GetAnnotationCountInAllChildren<T>() where T : Annotation => 
             GetEveryAnnotationEnumerator<T>().Select(t => t.Value).Count();
@@ -213,11 +210,11 @@ namespace Diz.Core.model.byteSources
             Debug.Assert(Bytes != null && other?.Bytes != null);
             Debug.Assert(Bytes.Count == other.Bytes.Count);
 
-            // do a special case if it's two particular types we know about
-            // (TODO: see if we can get this to happen without having to do it specifically here)
+            // optimization: do a special case if it's two particular types we know about
+            // (TODO: HACK: see if we can get this to happen without having to do it specifically here)
             if (Bytes is StorageSparse<ByteEntry> sparse1 && other.Bytes is StorageSparse<ByteEntry> sparse2)
             {
-                return sparse1.Equals(sparse2);
+                return sparse1.Equals(sparse2); // use StorageSparse.Equals() explicitly (more efficient)
             }
             
             // fallback: original version. this works but, it uses the dumber enumerator

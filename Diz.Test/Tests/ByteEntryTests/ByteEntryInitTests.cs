@@ -52,7 +52,7 @@ namespace Diz.Test.Tests.ByteEntryTests
                 Byte = 0x78,
             };
         }
-
+        
         [Fact]
         public void OldVsNewStyle()
         {
