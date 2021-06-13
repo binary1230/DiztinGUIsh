@@ -94,7 +94,7 @@ namespace Diz.Core.model.snes
         //
         // NOTE: this new checksum is [currently] never saved with the project file / serialized (since we don't
         // store the potentially copyrighted ROM bytes in the project file). it should just be used for
-        // testing/verification purposes. (that is why this is protected, it's not part of the normal API)
+        // testing/verification purposes.
         public void FixChecksum()
         {
             var rawRomBytesCopy = CreateListRawRomBytes();

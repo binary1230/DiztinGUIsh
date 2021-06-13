@@ -120,7 +120,7 @@ namespace Diz.Test.Tests.RomInterfaceTests
 
         // note: you need to put this on your local system for it to work.
         // gotta figure out how to make this portable without running into weirdness.
-        const string RomFileName = @"D:\roms\SNES\ct (U) [!].smc";
+        public const string RomFileName = @"D:\roms\SNES\ct (U) [!].smc";
         
         [FactOnlyIfFilePresent(new[]{SuperFamiCheckTool.Exe, RomFileName})]
         public static void TestFamicheckTool()
@@ -132,65 +132,7 @@ namespace Diz.Test.Tests.RomInterfaceTests
             // it's stored in the ROM file like this:
             // 73 87 8C 78
         }
-        
-        // SLOW. TODO: FIXME
-        [FactOnlyIfFilePresent(new[]{SuperFamiCheckTool.Exe, RomFileName})]
-        public static void TestInternalChecksumVsExternal()
-        {
-            var result = SuperFamiCheckTool.Run(RomFileName);
-            result.Complement.Should().Be(0x8773);
-            result.Checksum.Should().Be(0x788c);
-            (result.Complement + result.Checksum).Should().Be(0xFFFF);
-            
-            const uint expected4ByteChecksums = 0x788C8773;
-            result.AllCheckBytes.Should().Be(expected4ByteChecksums);
-            
-            var project = ImportUtils.ImportRomAndCreateNewProject(RomFileName);
-            project.Should().NotBeNull("project should have loaded successfully");
-            project.Data.GetRomByte(0xFFDC).Should().Be(0x73); // complement 1
-            project.Data.GetRomByte(0xFFDD).Should().Be(0x87); // complement 2
-            project.Data.GetRomByte(0xFFDE).Should().Be(0x8C); // checksum 1
-            project.Data.GetRomByte(0xFFDF).Should().Be(0x78); // checksum 2
 
-            var complement = project.Data.GetRomWord(0xFFDC);
-            complement.Should().Be(0x8773); // complement 16bit
-
-            var checksum = project.Data.GetRomWord(0xFFDE);
-            checksum.Should().Be(0x788c); // checksum 16bit
-            
-            (complement + checksum).Should().Be(0xFFFF);
-            
-            project.Data.GetRomDoubleWord(0xFFDC).Should().Be((int) expected4ByteChecksums); // complement 16bit
-            project.Data.RomCheckSumsFromRomBytes.Should().Be(expected4ByteChecksums);
-            project.InternalCheckSum.Should().Be(expected4ByteChecksums);
-
-            result.Complement.Should().Be((uint) complement);
-            result.Checksum.Should().Be((uint) checksum);
-
-            project.Data.ComputeChecksum().Should().Be((ushort)checksum);
-            project.Data.ComputeIsChecksumValid().Should().Be(true);
-
-            var firstByte = project.Data[0x00];
-            firstByte.Should().NotBe(0);
-            project.Data[0x00] = 0;
-            project.Data.ComputeIsChecksumValid().Should().Be(false);
-            project.Data.FixChecksum();
-            project.Data.ComputeIsChecksumValid().Should().Be(true);
-            
-            project.Data[0x00] = firstByte;
-            project.Data.ComputeIsChecksumValid().Should().Be(false);
-            project.Data.FixChecksum();
-            project.Data.ComputeIsChecksumValid().Should().Be(true);
-            
-            // SNES docs dictate:
-            // 15. Complement Check (0xFFDC, 0xFFDD)
-            // 16. Check Sum (0xFFDE, 0xFFDF)
-
-            // in the actual ROM file, it appears like this (remember: little endian for SNES)
-            // complement   checksum
-            // 73 87        8C 78
-        }
-        
         [Fact]
         public static void BugfixRemoveLabelWhenSnesAddressSpaceEmpty2()
         {
