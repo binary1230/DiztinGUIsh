@@ -1,5 +1,4 @@
 ﻿using System.Collections.ObjectModel;
-using System.ComponentModel;
 using System.Linq;
 using System.Xml.Serialization;
 using JetBrains.Annotations;
@@ -13,7 +12,7 @@ namespace Diz.Core.util
 
     public class ParentAwareObservableCollection<TParent, TItem> : ObservableCollection<TItem>
         where TParent : class
-        where TItem : IParentAware<TParent>, INotifyPropertyChanged
+        where TItem : IParentAware<TParent>
     {
         private TParent parent;
         [XmlIgnore] 
@@ -52,22 +51,22 @@ namespace Diz.Core.util
             SetAllItemParentsTo(null);
             foreach (var item in this)
             {
-                if (item != null)
-                    item.PropertyChanged -= ItemOnPropertyChanged;
+                // if (item != null)
+                //     item.PropertyChanged -= ItemOnPropertyChanged;
             }
             base.ClearItems();
         }
 
-        private void ItemOnPropertyChanged(object? sender, PropertyChangedEventArgs e)
-        {
-            
-        }
+        // private void ItemOnPropertyChanged(object? sender, PropertyChangedEventArgs e)
+        // {
+        //     
+        // }
 
         protected override void InsertItem(int index, TItem item)
         {
             base.InsertItem(index, item);
-            if (item != null)
-                item.PropertyChanged += ItemOnPropertyChanged;
+            // if (item != null)
+            //     item.PropertyChanged += ItemOnPropertyChanged;
             SetItemParent(item, Parent);
         }
 
@@ -75,8 +74,8 @@ namespace Diz.Core.util
         {
             var item = Items[index];
             SetItemParent(item, null);
-            if (item != null)
-                item.PropertyChanged -= ItemOnPropertyChanged;
+            // if (item != null)
+            //     item.PropertyChanged -= ItemOnPropertyChanged;
             
             base.RemoveItem(index);
         }
@@ -84,14 +83,14 @@ namespace Diz.Core.util
         protected override void SetItem(int index, TItem item)
         {
             {
-                var existing = Items[index];
-                if (existing != null)
-                    existing.PropertyChanged -= ItemOnPropertyChanged;
+                // var existing = Items[index];
+                // if (existing != null)
+                //     existing.PropertyChanged -= ItemOnPropertyChanged;
             }
 
             base.SetItem(index, item);
-            if (item != null)
-                item.PropertyChanged += ItemOnPropertyChanged;
+            // if (item != null)
+            //     item.PropertyChanged += ItemOnPropertyChanged;
             
             SetItemParent(item, Parent);
         }
@@ -104,10 +103,7 @@ namespace Diz.Core.util
             if (Util.BothListsNullOrContainNoItems(Items, other?.Items))
                 return true;
 
-            if (Items.Count != other?.Items.Count)
-                return false;
-            
-            return Items.SequenceEqual(other.Items);
+            return Items.Count == other?.Items.Count && Items.SequenceEqual(other.Items);
         }
 
         public override bool Equals(object obj)

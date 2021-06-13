@@ -133,6 +133,7 @@ namespace Diz.Test.Tests.RomInterfaceTests
             // 73 87 8C 78
         }
         
+        // SLOW. TODO: FIXME
         [FactOnlyIfFilePresent(new[]{SuperFamiCheckTool.Exe, RomFileName})]
         public static void TestInternalChecksumVsExternal()
         {

@@ -1,8 +1,11 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.Collections.Specialized;
 using System.Diagnostics;
 using System.Xml.Serialization;
+using ExtendedXmlSerializer.Core.Sources;
 using JetBrains.Annotations;
 
 // TODO: we can probably simplify most of this by replacing the parent class with ParentAwareCollection<ByteSource, ByteEntry>
@@ -16,7 +19,7 @@ namespace Diz.Core.model.byteSources
         TParent Parent { get; set; } // TODO: change to TParent later if we can
     }
     
-    public abstract class Storage<T> : IList<T>
+    public abstract class Storage<T> : IList<T>, IObservable<T>, INotifyCollectionChanged
         // // we are a class that stores TItems, and OUR parent is TOurParent
         // IStorageWithParent<TItemWeStore, TOurParent> 
         where 
@@ -102,6 +105,8 @@ namespace Diz.Core.model.byteSources
 
         public abstract IEnumerator<T> GetNativeEnumerator();
         
+        public abstract ReadOnlyObservableCollection<T> ToObservable();
+
         protected void ImportBytes(IReadOnlyCollection<T> inBytes)
         {
             Debug.Assert(inBytes != null);
@@ -138,6 +143,13 @@ namespace Diz.Core.model.byteSources
         }
 
         protected void OnPreClear() => UpdateAllParentInfo(shouldUnsetAll: true);
+        public abstract IDisposable Subscribe(IObserver<T> observer);
+        public event NotifyCollectionChangedEventHandler? CollectionChanged;
+        
+        protected void OnCollectionChanged(NotifyCollectionChangedEventArgs e)
+        {
+            CollectionChanged?.Invoke(this, e);
+        }
     }
     
     // iterate sequentially through a range in an IEnumerable<T> class like StorageSparse<ByteEntry>

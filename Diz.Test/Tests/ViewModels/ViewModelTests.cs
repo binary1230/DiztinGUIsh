@@ -164,24 +164,18 @@ namespace Diz.Test.Tests.ViewModels
                 };
             }
 
-            var underlyingByteStorage = new ObservableCollection<ByteEntry>();
-            
-            underlyingByteStorage.Add(new ByteEntry {
-                Annotations = MakeAnnotations()
-            });
-            underlyingByteStorage.Add(CreateSampleEntry());
-
-
-            var expectedByteStorage = new List<ByteEntry>()
+            var underlyingByteStorage = new StorageList<ByteEntry>
             {
-                new()
-                {
-                    Annotations = MakeAnnotations()
-                }   
+                new() {Annotations = MakeAnnotations()}, CreateSampleEntry()
             };
-            expectedByteStorage.Add(CreateSampleEntry());
+
+            var expectedByteStorage = new List<ByteEntry>
+            {
+                new() {Annotations = MakeAnnotations()}, CreateSampleEntry()
+            };
 
             var observable = underlyingByteStorage
+                .ToObservable()
                 .ToObservableChangeSet()
                 .AsObservableList();
             
@@ -197,9 +191,8 @@ namespace Diz.Test.Tests.ViewModels
                 .ObserveOn(RxApp.MainThreadScheduler)
                 // We .Bind() and now our mutable Items collection 
                 // contains the new items and the GUI gets refreshed.
-                .Bind(out var observedItems)
-                .Subscribe(set => Console.WriteLine(set.ToString()));
-            
+                .Bind(out var observedItems);
+
             observedItems.Should().Equal(expectedByteStorage);
 
             var called = false;
@@ -207,10 +200,14 @@ namespace Diz.Test.Tests.ViewModels
 
             expectedByteStorage.RemoveAt(0);
             underlyingByteStorage.RemoveAt(0);
-
             called.Should().Be(true);
-
             observedItems.Should().ContainSingle();
+            observedItems.Should().Equal(expectedByteStorage);
+
+            called = false;
+            expectedByteStorage.Add(new ByteEntry());
+            underlyingByteStorage.Add(new ByteEntry());
+            called.Should().Be(true);
             observedItems.Should().Equal(expectedByteStorage);
         }
     }

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -326,6 +327,16 @@ namespace Diz.Core.model.byteSources
         protected override void UpdateAllParentInfo(bool shouldUnsetAll = false)
         {
             bytes.ForEach(pair => this.UpdateParentInfoFor(pair.Value, shouldUnsetAll, pair.Key));
+        }
+
+        public override IDisposable Subscribe(IObserver<T> observer)
+        {
+            throw new NotImplementedException();
+        }
+        
+        public override ReadOnlyObservableCollection<T> ToObservable()
+        {
+            throw new NotImplementedException();
         }
 
         // note: indices are going to be ordered, BUT there can be gaps.
