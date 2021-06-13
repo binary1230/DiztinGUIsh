@@ -1,16 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using System.Collections.Specialized;
-using System.Linq;
 using System.Reactive.Linq;
 using Diz.Core.model;
 using Diz.Core.model.byteSources;
-using Diz.ViewModels;
 using DynamicData;
 using DynamicData.Binding;
 using FluentAssertions;
-using Moq;
 using ReactiveUI;
 using Xunit;
 
@@ -191,7 +186,8 @@ namespace Diz.Test.Tests.ViewModels
                 .ObserveOn(RxApp.MainThreadScheduler)
                 // We .Bind() and now our mutable Items collection 
                 // contains the new items and the GUI gets refreshed.
-                .Bind(out var observedItems);
+                .Bind(out var observedItems)
+                .Subscribe();
 
             observedItems.Should().Equal(expectedByteStorage);
 
